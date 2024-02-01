@@ -1,0 +1,16 @@
+
+.move-btn {
+    border-style: none;
+    border-radius: 23px;
+    width: 20rem;
+    height: 10rem;
+    margin: 10px; /* Add some margin if you want space between the buttons */
+    font-size: xx-large;
+    background-color: #145369; /* DARKER; */ /* #2596be; LIGHTER */
+    color: white;
+
+}
+.move-btn:hover, .move-btn:disabled {
+    background-color: #1f7a8c;
+    cursor: pointer;
+}
