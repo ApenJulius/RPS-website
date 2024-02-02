@@ -42,5 +42,10 @@
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    margin-top: 20px;
+    margin-top: auto;
+    margin-bottom:min(10vh, 100px);
+    height:80vh;
 }
+h1 {
+    text-align: center;
+  }
