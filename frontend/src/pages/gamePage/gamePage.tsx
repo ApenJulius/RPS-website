@@ -11,7 +11,9 @@ enum ErrorCode {
 
 function GamePage() {
   const [playerMove, setPlayerMove] = useState<string>("")
-  //const [groupID, setGroupID] = useState<string>("") // TODO: get from url params
+  const { id } = useParams();
+  const [connectedPlayers, setConnectedPlayers] = useState<number>(0) // TODO: get from backend
+  const [maxPlayers, setMaxPlayers] = useState<number>(2) // TODO: get from backend
   const [status, setStatus] = useState<string>("Disconnected")
   const ws = useRef<WebSocket | null>(null)
   
@@ -21,7 +23,11 @@ function GamePage() {
 
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:8000/ws?groupID=group1');
+    if(!id) {
+      console.error("No groupID provided")
+      return;
+    }
+    ws.current = new WebSocket(`ws://localhost:8000/ws?groupID=${id}`);
     
     ws.current.onopen = () => {
       console.log('ws opened');
@@ -75,6 +81,7 @@ function GamePage() {
   return (
     <div>
       <h1>{status}</h1>
+      <h3>Connected players: {connectedPlayers}/{maxPlayers}</h3>
       <div className='move-btn-container'>
         {
           options.map((move_option) => {
