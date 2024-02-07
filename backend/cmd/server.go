@@ -2,6 +2,7 @@ package main
 
 import (
 	"RPS-backend/responses"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -76,7 +77,10 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
 	clientAddr := ws.RemoteAddr().String()
 	groups[groupID].clients[ws] = true
-	log.Printf("New client( %s ) connected to group %s", clientAddr, groupID)
+	clientCount := len(groups[groupID].clients)
+	maxClients := groups[groupID].max
+	clientInfo := fmt.Sprintf("%d/%d", clientCount, maxClients)
+	log.Printf("New client( %s ) connected to group %s : %s", clientAddr, groupID, clientInfo)
 	response, err := responses.CreateResponse(responses.GameFound, "Connected to group successfully", groupID)
 	if err != nil {
 		// handle error
@@ -84,12 +88,30 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	ws.WriteMessage(websocket.TextMessage, []byte(response))
 	clients[ws] = true
 
+	sendGroupUpdate := func() {
+		data := map[string]interface{}{
+			"current": len(groups[groupID].clients),
+			"max":     groups[groupID].max,
+		}
+		response, err := responses.CreateResponse(responses.PlayerJoined, "Player added", groupID, data)
+		if err != nil {
+			// handle error
+		}
+		for conn := range groups[groupID].clients {
+			if err := conn.WriteMessage(websocket.TextMessage, []byte(response)); err != nil {
+				log.Println("write:", err)
+			}
+		}
+	}
+
+	sendGroupUpdate() // Call after client is added
 	for {
 		var msg Message
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("error: %v", err)
 			delete(groups[groupID].clients, ws)
+			sendGroupUpdate() // Call after client is removed
 			break
 		}
 		log.Printf("Received message from %s: %v", clientAddr, msg) // print the client's address and the received message
