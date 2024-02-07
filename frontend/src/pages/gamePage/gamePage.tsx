@@ -5,6 +5,8 @@ import { MoveButton } from '../../components/MoveButton/MoveButton';
 
 enum ErrorCode {
   GAME_FOUND = 10,
+  PLAYER_JOINED = 20,
+  PLAYER_LEFT = 30,
 }
 
 
@@ -37,13 +39,21 @@ function GamePage() {
     ws.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
       console.log(data);
-      if(data.code == ErrorCode.GAME_FOUND) {
-        console.log("game found")
-        setStatus(`Connected to: ${data.groupID}`)
-
-      }
-      // handle the data as needed
-    };
+      console.log(data.data);
+      
+      switch(Number(data.code)) {
+        case ErrorCode.GAME_FOUND:
+          setStatus(`Connected to: ${data.groupID}`)
+          break;
+        case ErrorCode.PLAYER_JOINED:
+        case ErrorCode.PLAYER_LEFT:
+          setConnectedPlayers(data.data.current)
+          setMaxPlayers(data.data.max)
+          break;
+        default:
+          console.error("Unknown message received", data)
+        }
+      };
 
     ws.current.onclose = () => {
       console.log('ws closed');
