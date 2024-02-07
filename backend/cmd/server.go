@@ -55,15 +55,19 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	defer ws.Close()
-
+	client := &structs.Client{
+		Conn: ws,
+		Move: "",
+	}
 	groupID := r.URL.Query().Get("groupID")
 	if groupID == "" {
 		log.Println("groupID not specified") // TODO: Auto assign group
 		return
 	}
 	if _, ok := groups[groupID]; !ok {
+
 		groups[groupID] = &structs.Group{
-			Clients: make(map[*websocket.Conn]bool),
+			Clients: make(map[*structs.Client]bool),
 			Max:     2,
 		}
 	}
@@ -74,7 +78,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientAddr := ws.RemoteAddr().String()
-	groups[groupID].Clients[ws] = true
+	groups[groupID].Clients[client] = true
 	clientCount := len(groups[groupID].Clients)
 	MaxClients := groups[groupID].Max
 	clientInfo := fmt.Sprintf("%d/%d", clientCount, MaxClients)
@@ -84,7 +88,6 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		// handle error
 	}
 	ws.WriteMessage(websocket.TextMessage, []byte(response))
-	Clients[ws] = true
 
 	sendGroupUpdate := func() {
 		data := map[string]interface{}{
@@ -96,7 +99,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			// handle error
 		}
 		for conn := range groups[groupID].Clients {
-			if err := conn.WriteMessage(websocket.TextMessage, []byte(response)); err != nil {
+			if err := conn.Conn.WriteMessage(websocket.TextMessage, []byte(response)); err != nil {
 				log.Println("write:", err)
 			}
 		}
@@ -104,20 +107,28 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
 	sendGroupUpdate() // Call after client is added
 	if len(groups[groupID].Clients) == groups[groupID].Max {
-		game.PlayGame(groups[groupID])
+		go game.PlayGame(groups[groupID])
 	}
+	validMoves := []string{"rock", "paper", "scissors"} // temp valid move check
+
 	for {
 		var msg Message
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("error: %v", err)
-			delete(groups[groupID].Clients, ws)
+			delete(groups[groupID].Clients, client)
 			sendGroupUpdate() // Call after client is removed
 			break
 		}
+		for _, move := range validMoves {
+			if msg.Move == move {
+				client.Move = msg.Move // Update the client's move
+				break
+			}
+		}
 		log.Printf("Received message from %s: %v", clientAddr, msg) // print the client's address and the received message
 		for conn := range groups[groupID].Clients {
-			if err := conn.WriteJSON(msg); err != nil {
+			if err := conn.Conn.WriteJSON(msg); err != nil {
 				log.Println("write:", err)
 			}
 		}
@@ -134,18 +145,6 @@ func handleMessages() {
 				client.Close()
 				delete(Clients, client)
 			}
-		}
-	}
-}
-
-func gameStarting(groupID string) {
-	response, err := responses.CreateResponse(responses.GameStarted, "Game has started", groupID)
-	if err != nil {
-		// handle error
-	}
-	for conn := range groups[groupID].Clients {
-		if err := conn.WriteMessage(websocket.TextMessage, []byte(response)); err != nil {
-			log.Println("write:", err)
 		}
 	}
 }
