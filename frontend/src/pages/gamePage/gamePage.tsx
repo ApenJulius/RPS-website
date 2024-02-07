@@ -7,6 +7,8 @@ enum ErrorCode {
   GAME_FOUND = 10,
   PLAYER_JOINED = 20,
   PLAYER_LEFT = 30,
+  GameStarted = 40,
+	GameCountdown = 41
 }
 
 
@@ -18,6 +20,7 @@ function GamePage() {
   const [maxPlayers, setMaxPlayers] = useState<number>(2) // TODO: get from backend
   const [status, setStatus] = useState<string>("Disconnected")
   const ws = useRef<WebSocket | null>(null)
+  const [gameMessage, setGameMessage] = useState<string>("")
   
   const lookingForGame = () => {
     setStatus("Looking for game...")
@@ -48,6 +51,10 @@ function GamePage() {
         case ErrorCode.PLAYER_LEFT:
           setConnectedPlayers(data.data.current)
           setMaxPlayers(data.data.max)
+          break;
+        case ErrorCode.GameCountdown:
+          setGameMessage(data.info)
+          console.log(data.info)
           break;
         default:
           console.error("Unknown message received", data)
@@ -111,6 +118,7 @@ function GamePage() {
       <h1>{status}</h1>
       <h3>Connected players: {connectedPlayers}/{maxPlayers}</h3>
       <button id="clipboard-copy" onClick={copyToClipboard}>Copy game link</button> <span id="copy-feedback">Copied</span>
+      <h2>{gameMessage}</h2>
       <div className='move-btn-container'>
         {
           options.map((move_option) => {
