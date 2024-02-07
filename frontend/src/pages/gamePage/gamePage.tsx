@@ -39,7 +39,6 @@ function GamePage() {
     ws.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
       console.log(data);
-      console.log(data.data);
       
       switch(Number(data.code)) {
         case ErrorCode.GAME_FOUND:
@@ -87,11 +86,31 @@ function GamePage() {
     console.log(playerMove)
     sendMessage(move)
   }
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(window.location.href)
+    .then(() => {
+      const copyFeedback = document.getElementById('copy-feedback');
+      if (copyFeedback) {
+        copyFeedback.classList.add('fade-in');
+        setTimeout(() => {
+          copyFeedback.classList.remove('fade-in');
+        }, 1000);
+      }
+    })
+    .catch(err => {
+      console.error('Failed to copy page URL: ', err);
+    });
+  }
+
+
+
   const options = ["rock", "paper", "scissors"] // gotta match backend fyi
   return (
     <div>
       <h1>{status}</h1>
       <h3>Connected players: {connectedPlayers}/{maxPlayers}</h3>
+      <button id="clipboard-copy" onClick={copyToClipboard}>Copy game link</button> <span id="copy-feedback">Copied</span>
       <div className='move-btn-container'>
         {
           options.map((move_option) => {
