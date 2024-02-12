@@ -3,14 +3,8 @@ import {useParams} from 'react-router-dom';
 import './gamePage.css';
 import { MoveButton } from '../../components/MoveButton/MoveButton';
 
-enum ErrorCode {
-  GAME_FOUND = 10,
-  PLAYER_JOINED = 20,
-  PLAYER_LEFT = 30,
-  GameStarted = 40,
-	GameCountdown = 41
-}
-
+import { ErrorCode } from '../../constants/ErrorCodes';
+const { GAME_FOUND, PLAYER_JOINED, PLAYER_LEFT, GAME_COUNTDOWN } = ErrorCode
 
 
 function GamePage() {
@@ -32,7 +26,7 @@ function GamePage() {
       console.error("No groupID provided")
       return;
     }
-    ws.current = new WebSocket(`ws://localhost:8000/ws?groupID=${id}`);
+    ws.current = new WebSocket(`ws://${process.env.REACT_APP_WEBSITE_NAME}:8000/game?groupID=${id}`);
     
     ws.current.onopen = () => {
       console.log('ws opened');
@@ -44,15 +38,15 @@ function GamePage() {
       console.log(data);
       
       switch(Number(data.code)) {
-        case ErrorCode.GAME_FOUND:
+        case GAME_FOUND:
           setStatus(`Connected to: ${data.groupID}`)
           break;
-        case ErrorCode.PLAYER_JOINED:
-        case ErrorCode.PLAYER_LEFT:
+        case PLAYER_JOINED:
+        case PLAYER_LEFT:
           setConnectedPlayers(data.data.current)
           setMaxPlayers(data.data.max)
           break;
-        case ErrorCode.GameCountdown:
+        case GAME_COUNTDOWN:
           setGameMessage(data.info)
           console.log(data.info)
           break;
