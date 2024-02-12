@@ -3,8 +3,8 @@ import {useNavigate} from 'react-router-dom';
 import './LobbyPage.css';
 import { MoveButton } from '../../components/MoveButton/MoveButton';
 import { ErrorCode } from '../../constants/ErrorCodes';
-const { LOBBIES, PLAYER_JOINED, PLAYER_LEFT, GAME_COUNTDOWN } = ErrorCode
-
+const { LOBBIES } = ErrorCode
+const { REACT_APP_WEBSITE_NAME } = process.env;
 
 function LobbyPage() {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ function LobbyPage() {
 
 
     useEffect(() => {
-      ws.current = new WebSocket(`ws://${process.env.REACT_APP_WEBSITE_NAME}:8000/lobby`);
+      ws.current = new WebSocket(`ws://${REACT_APP_WEBSITE_NAME}:8000/lobby`);
       
       ws.current.onopen = () => {
         console.log('ws opened');
