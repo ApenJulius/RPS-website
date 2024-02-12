@@ -14,3 +14,5 @@ type Group struct {
 type Message struct {
 	Move string `json:"move"`
 }
+type Settings struct {
+}
