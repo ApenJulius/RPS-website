@@ -2,6 +2,7 @@ package main
 
 import (
 	"RPS-backend/game"
+	"RPS-backend/paths"
 	"RPS-backend/responses"
 	"RPS-backend/structs"
 	"fmt"
@@ -14,29 +15,14 @@ import (
 var Clients = make(map[*websocket.Conn]bool) // connected Clients
 var broadcast = make(chan Message)           // broadcast channel
 
-type Settings struct {
-}
-
-var groups = make(map[string]*structs.Group)
-
-// Configure the upgrader
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
 // Define our message object
-type Message struct {
-	Move string `json:"move"`
-}
 
 func main() {
 	fs := http.FileServer(http.Dir("../public"))
 	http.Handle("/", fs)
 
-	http.HandleFunc("/ws", handleConnections)
-
+	http.HandleFunc("/game", paths.ConnectToGame)
+	http.handleFunc("/lobby", paths.ConnectToLobby)
 	go handleMessages()
 
 	host := "localhost"
