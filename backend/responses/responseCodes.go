@@ -8,5 +8,6 @@ const (
 	PlayerLeft    GameStatus = 30
 	GameStarted   GameStatus = 40
 	GameCountdown GameStatus = 41
+	LobbyConnect  GameStatus = 50
 	// other statuses...
 )
