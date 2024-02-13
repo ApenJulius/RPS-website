@@ -49,3 +49,11 @@
 h1 {
     text-align: center;
   }
+
+
+.lobby-container {
+  background-color: #282c34;
+}
+.row {
+  background-color: #61dafb;
+}
