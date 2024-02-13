@@ -3,11 +3,18 @@ import {useNavigate} from 'react-router-dom';
 import './LobbyPage.css';
 import { MoveButton } from '../../components/MoveButton/MoveButton';
 import { ErrorCode } from '../../constants/ErrorCodes';
-const { LOBBIES } = ErrorCode
+const { LOBBY_CONNECT } = ErrorCode
 const { REACT_APP_WEBSITE_NAME } = process.env;
+
+
+interface Group {
+  clients: string[];
+  max: number;
+}
 
 function LobbyPage() {
   const navigate = useNavigate();
+  const [lobbies, setLobbies] = useState({} as {[key: string]: Group});
   const ws = useRef<WebSocket | null>(null)
     const startGame = () => {
         console.log("start game")
@@ -25,27 +32,24 @@ function LobbyPage() {
     }
 
 
-    const getLobbies = () => {
-
-    }
-
-
     useEffect(() => {
       ws.current = new WebSocket(`ws://${REACT_APP_WEBSITE_NAME}:8000/lobby`);
       
       ws.current.onopen = () => {
         console.log('ws opened');
-        getLobbies();
       };
   
       ws.current.onmessage = (message) => {
         const data = JSON.parse(message.data);
         console.log(data);
         switch(Number(data.code)) {
-          case LOBBIES:
+          case LOBBY_CONNECT:
+            console.log("Connected to lobby");
+            console.log(data.data)
+            setLobbies(data.data);
             break;
           default:
-            console.error("UNKNOWN ERROR", data.code)
+            console.error("UNKNOWN CODE AT WS SWITCH", data.code)
         }
         
       }
@@ -61,8 +65,8 @@ function LobbyPage() {
         );
         ws.current?.close();
       }
-  
-  
+      
+      
       return () => {
         if(ws.current) {
           ws.current.close();
@@ -74,6 +78,26 @@ function LobbyPage() {
     <div>
     <h1>Lobby</h1>
     <button onClick={startGame}>Start Game</button>
+    <table className='lobby-container'>
+      <thead>
+        <tr>
+          <th>Lobby</th>
+          <th>Players</th>
+        </tr>
+      </thead>
+      <tbody>
+      {
+      Object.entries(lobbies).map(([key, value]: [string, Group], index) => {
+      // Ensure that a JSX element is returned for each lobby
+      return (
+        <tr key={index} className='row'>
+          <td>{key}</td>
+          <td>{value.clients}/{value.max}</td>
+        </tr>
+      );
+    })}
+      </tbody>
+      </table>
     </div>
   );
 }
