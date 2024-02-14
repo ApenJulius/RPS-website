@@ -3,7 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import './LobbyPage.css';
 import { MoveButton } from '../../components/MoveButton/MoveButton';
 import { ErrorCode } from '../../constants/ErrorCodes';
-const { LOBBY_CONNECT } = ErrorCode
+const { LOBBY_UPDATE } = ErrorCode
 const { REACT_APP_WEBSITE_NAME } = process.env;
 
 
@@ -43,7 +43,7 @@ function LobbyPage() {
         const data = JSON.parse(message.data);
         console.log(data);
         switch(Number(data.code)) {
-          case LOBBY_CONNECT:
+          case LOBBY_UPDATE:
             console.log("Connected to lobby");
             console.log(data.data)
             setLobbies(data.data);
