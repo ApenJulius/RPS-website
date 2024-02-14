@@ -53,23 +53,7 @@ func ConnectToGame(w http.ResponseWriter, r *http.Request) {
 	}
 	ws.WriteMessage(websocket.TextMessage, []byte(response))
 
-	sendGroupUpdate := func() {
-		data := map[string]interface{}{
-			"current": len(globals.Lobbies[groupID].Clients),
-			"max":     globals.Lobbies[groupID].Max,
-		}
-		response, err := responses.CreateResponse(responses.PlayerJoined, "Player added", groupID, data)
-		if err != nil {
-			// handle error
-		}
-		for conn := range globals.Lobbies[groupID].Clients {
-			if err := conn.Conn.WriteMessage(websocket.TextMessage, []byte(response)); err != nil {
-				log.Println("write:", err)
-			}
-		}
-	}
-
-	sendGroupUpdate() // Call after client is added
+	utils.SendGroupUpdate(groupID) // Call after client is added
 	if len(globals.Lobbies[groupID].Clients) == globals.Lobbies[groupID].Max {
 		go game.PlayGame(globals.Lobbies[groupID])
 	}
@@ -81,10 +65,12 @@ func ConnectToGame(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("error: %v", err)
 			delete(globals.Lobbies[groupID].Clients, client)
-			sendGroupUpdate() // Call after client is removed
+
 			if len(globals.Lobbies[groupID].Clients) == 0 {
 				delete(globals.Lobbies, groupID)
+				break
 			}
+			utils.SendGroupUpdate(groupID) // Call after client is removed
 			break
 		}
 		for _, move := range validMoves {
