@@ -82,6 +82,9 @@ func ConnectToGame(w http.ResponseWriter, r *http.Request) {
 			log.Printf("error: %v", err)
 			delete(globals.Lobbies[groupID].Clients, client)
 			sendGroupUpdate() // Call after client is removed
+			if len(globals.Lobbies[groupID].Clients) == 0 {
+				delete(globals.Lobbies, groupID)
+			}
 			break
 		}
 		for _, move := range validMoves {
