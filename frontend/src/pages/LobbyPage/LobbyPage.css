@@ -52,8 +52,18 @@ h1 {
 
 
 .lobby-container {
+  display: flex;
+  flex-direction: column;
   background-color: #282c34;
+  margin:auto;
+  align-items: center;
 }
 .row {
   background-color: #61dafb;
+  cursor:pointer;
+}
+.row:hover {
+  background-color: #282c34;
+  opacity: 20%;
+  color: #61dafb;
 }
