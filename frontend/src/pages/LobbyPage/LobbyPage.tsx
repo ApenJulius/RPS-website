@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import './LobbyPage.css';
-import { MoveButton } from '../../components/MoveButton/MoveButton';
 import { ErrorCode } from '../../constants/ErrorCodes';
 const { LOBBY_UPDATE } = ErrorCode
 const { REACT_APP_WEBSITE_NAME } = process.env;
@@ -21,6 +20,7 @@ function LobbyPage() {
         navigate("/" + genRandomString(10))
     
     }
+    console.log(REACT_APP_WEBSITE_NAME)
     const genRandomString = (length: number) =>{
       var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       var charLength = chars.length;
@@ -41,11 +41,9 @@ function LobbyPage() {
   
       ws.current.onmessage = (message) => {
         const data = JSON.parse(message.data);
-        console.log(data);
         switch(Number(data.code)) {
           case LOBBY_UPDATE:
             console.log("Connected to lobby");
-            console.log(data.data)
             setLobbies(data.data);
             break;
           default:
@@ -88,9 +86,8 @@ function LobbyPage() {
       <tbody>
       {
       Object.entries(lobbies).map(([key, value]: [string, Group], index) => {
-      // Ensure that a JSX element is returned for each lobby
       return (
-        <tr key={index} className='row'>
+        <tr key={index} className='row' onClick={() => navigate(`/${key}`)}>
           <td>{key}</td>
           <td>{value.clients}/{value.max}</td>
         </tr>
