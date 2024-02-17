@@ -17,7 +17,7 @@ var broadcast = make(chan structs.Message)   // broadcast channel
 
 func createLobbies() {
 	globals.Lobbies = make(map[string]*structs.Group)
-	globals.InBrowser = make(map[string]*structs.Client)
+	globals.InBrowser = []*structs.Client{}
 }
 
 func main() {
