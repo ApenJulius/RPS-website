@@ -49,13 +49,18 @@ func ConnectToGame(w http.ResponseWriter, r *http.Request) {
 	log.Printf("New client( %s ) connected to group %s : %s", clientAddr, groupID, clientInfo)
 	response, err := responses.CreateResponse(responses.GameFound, "Connected to group successfully", groupID)
 	if err != nil {
+		fmt.Println(err)
+		return
 		// handle error
 	}
 	ws.WriteMessage(websocket.TextMessage, []byte(response))
 
+	utils.LobbyListUpdate()
+
+	fmt.Println("Updated lobby list", response)
 	utils.SendGroupUpdate(groupID) // Call after client is added
 	if len(globals.Lobbies[groupID].Clients) == globals.Lobbies[groupID].Max {
-		go game.PlayGame(globals.Lobbies[groupID])
+		go game.PlayGame(globals.Lobbies[groupID], groupID)
 	}
 	validMoves := []string{"rock", "paper", "scissors"} // temp valid move check
 
