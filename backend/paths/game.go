@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -60,7 +61,11 @@ func ConnectToGame(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Updated lobby list", response)
 	utils.SendGroupUpdate(groupID) // Call after client is added
 	if len(globals.Lobbies[groupID].Clients) == globals.Lobbies[groupID].Max {
-		go game.PlayGame(globals.Lobbies[groupID], groupID)
+		if time.Since(globals.Lobbies[groupID].LastGameStarted) > 5*time.Second {
+			go game.PlayGame(globals.Lobbies[groupID], groupID)
+			// Update the LastGameStarted timestamp
+			globals.Lobbies[groupID].LastGameStarted = time.Now()
+		}
 	}
 	validMoves := []string{"rock", "paper", "scissors"} // temp valid move check
 
@@ -78,6 +83,18 @@ func ConnectToGame(w http.ResponseWriter, r *http.Request) {
 			utils.SendGroupUpdate(groupID) // Call after client is removed
 			break
 		}
+		if msg.Rematch {
+			fmt.Println("rematch requested")
+			if len(globals.Lobbies[groupID].Clients) == globals.Lobbies[groupID].Max {
+				if time.Since(globals.Lobbies[groupID].LastGameStarted) > 5*time.Second {
+					go game.PlayGame(globals.Lobbies[groupID], groupID)
+					// Update the LastGameStarted timestamp
+					globals.Lobbies[groupID].LastGameStarted = time.Now()
+				}
+			}
+			continue
+		}
+
 		for _, move := range validMoves {
 			if msg.Move == move {
 				client.Move = msg.Move // Update the client's move
