@@ -4,7 +4,7 @@ import './gamePage.css';
 import { MoveButton } from '../../components/MoveButton/MoveButton';
 
 import { ErrorCode } from '../../constants/ErrorCodes';
-const { GAME_FOUND, PLAYER_JOINED, PLAYER_LEFT, GAME_COUNTDOWN } = ErrorCode
+const { GAME_FOUND, PLAYER_JOINED, PLAYER_LEFT, GAME_COUNTDOWN, GAME_OVER } = ErrorCode
 
 
 function GamePage() {
@@ -15,6 +15,9 @@ function GamePage() {
   const [status, setStatus] = useState<string>("Disconnected")
   const ws = useRef<WebSocket | null>(null)
   const [gameMessage, setGameMessage] = useState<string>("")
+  const [score, setScore] = useState<string>("You 0 - 0 Opponent")
+  
+  
   
   const lookingForGame = () => {
     setStatus("Looking for game...")
@@ -41,14 +44,20 @@ function GamePage() {
         case GAME_FOUND:
           setStatus(`Connected to: ${data.groupID}`)
           break;
+        case GAME_OVER:
+          setGameMessage(`Game over, ${data.info}`)
+          break;
         case PLAYER_JOINED:
-        case PLAYER_LEFT:
+        case PLAYER_LEFT: 
           setConnectedPlayers(data.data.current)
           setMaxPlayers(data.data.max)
           break;
         case GAME_COUNTDOWN:
           setGameMessage(data.info)
           console.log(data.info)
+          break;
+        case ErrorCode.SCORE_UPDATE:
+          setScore(`You ${data.data.Score1} - ${data.data.Score2} Opponent`)
           break;
         default:
           console.error("Unknown message received", data)
@@ -84,8 +93,7 @@ function GamePage() {
 
   const handleButtonClick = (move: string) => {
     setPlayerMove(move)
-    console.log(playerMove)
-    sendMessage(move)
+    sendMessage(move) 
   }
 
   const copyToClipboard = () => {
@@ -103,16 +111,22 @@ function GamePage() {
       console.error('Failed to copy page URL: ', err);
     });
   }
-
+  const rematchGame = () => {
+    if(ws.current) {
+      ws.current.send(JSON.stringify({rematch: true}))
+    }
+  }
 
 
   const options = ["rock", "paper", "scissors"] // gotta match backend fyi
   return (
     <div>
       <h1>{status}</h1>
+      <h2 className='score'>{score}</h2>
       <h3>Connected players: {connectedPlayers}/{maxPlayers}</h3>
       <button id="clipboard-copy" onClick={copyToClipboard}>Copy game link</button> <span id="copy-feedback">Copied</span>
-      <h2>{gameMessage}</h2>
+      <button onClick={rematchGame}>Rematch</button>
+      <h2 className='game-message'>{gameMessage}</h2>
       <div className='move-btn-container'>
         {
           options.map((move_option) => {
