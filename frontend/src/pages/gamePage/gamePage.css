@@ -58,3 +58,16 @@ h1 {
   opacity: 1;
   transition: opacity 0.2s ease-in;
 }
+
+.game-message {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+}
+
+.score {
+  text-align: center;
+  transform: translateY(-50%);
+}
