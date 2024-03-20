@@ -1,18 +1,26 @@
 package structs
 
-import "github.com/gorilla/websocket"
+import (
+	"time"
+
+	"github.com/gorilla/websocket"
+)
 
 type Client struct {
-	Conn *websocket.Conn
-	Move string
+	Conn  *websocket.Conn
+	Move  string
+	Score int
 }
 
 type Group struct {
-	Clients map[*Client]bool
-	Max     int
+	Clients         map[*Client]bool
+	Max             int
+	LastGameStarted time.Time
+	GameInProgress  bool
 }
 type Message struct {
-	Move string `json:"move"`
+	Move    string `json:"move"`
+	Rematch bool   `json:"rematch,omitempty"`
 }
 type Settings struct {
 }
